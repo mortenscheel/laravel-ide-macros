@@ -169,7 +169,8 @@ class MacrosCommand extends Command
             }
 
             if ($parameter->hasType()) {
-                $this->write($parameter->getType() . " ");
+                $type = $parameter->getType();
+                $this->write(sprintf('%s%s ', $type->isBuiltin() ? '' : '\\', (string)$type));
             }
 
             $this->write("$" . $parameter->getName());
@@ -182,7 +183,7 @@ class MacrosCommand extends Command
 
         $this->write(")");
         if ($returnType) {
-            $this->write(": $returnType");
+            $this->write(sprintf(': %s%s', $returnType->isBuiltin() ? '' : '\\', (string)$returnType));
         }
         $this->writeLine(" {");
 
