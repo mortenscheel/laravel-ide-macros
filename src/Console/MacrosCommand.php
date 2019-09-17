@@ -100,12 +100,12 @@ class MacrosCommand extends Command
                             $this->writeLine($comment, $this->indent);
 
                             if (strpos($comment, '@instantiated') !== false) {
-                                $this->generateFunction($name, $function->getParameters(), "public");
+                                $this->generateFunction($name, $function->getParameters(), "public", $function->getReturnType());
                                 continue;
                             }
                         }
 
-                        $this->generateFunction($name, $function->getParameters(), "public static");
+                        $this->generateFunction($name, $function->getParameters(), "public static", $function->getReturnType());
                     }
                 });
             });
@@ -152,11 +152,13 @@ class MacrosCommand extends Command
 
     /**
      * @param string $name
-     * @param array $parameters
+     * @param \ReflectionParameter[] $parameters
      * @param string $type
+     * @param null|string $returnType
      * @param null|Callable $callback
+     * @throws \ReflectionException
      */
-    protected function generateFunction($name, $parameters, $type = '', $callback = null)
+    protected function generateFunction($name, $parameters, $type = '', $returnType = null, $callback = null)
     {
         $this->write(($type ? "$type " : '') . "function $name(", $this->indent);
 
@@ -164,6 +166,10 @@ class MacrosCommand extends Command
         foreach ($parameters as $parameter) {
             if ($index) {
                 $this->write(", ");
+            }
+
+            if ($parameter->hasType()) {
+                $this->write($parameter->getType() . " ");
             }
 
             $this->write("$" . $parameter->getName());
@@ -174,7 +180,11 @@ class MacrosCommand extends Command
             $index++;
         }
 
-        $this->writeLine(") {");
+        $this->write(")");
+        if ($returnType) {
+            $this->write(": $returnType");
+        }
+        $this->writeLine(" {");
 
         if ($callback) {
             $callback();
